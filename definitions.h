@@ -16,6 +16,7 @@
 #define     ROSPITCH        2
 #define     ROSROLL         3
 #define     ROSHEIGHT       4
+#define     ROSMODE         5
 
 // Gimbal definitions
 #define     DYNASCALE       11.377777777777
@@ -48,7 +49,7 @@
 #define     LIFTSCALE       4400
 #define     LIFTPROPCONST   0.01
 #define     LIFTRAMPCONST   0.002f
-#define     LIFTHEIGHTMAX   2640    // 2640/4400 = 0.6m
+#define     LIFTHEIGHTMAX   2640    // 2640/4400 = 0.6m was 2640
 #define     LIFTHEIGHTMIN   132     // 132/4400 = 0.05m
 
 
@@ -67,6 +68,7 @@ bool    liftRun;
 bool    gimbalRun;
 bool    shutdown;
 bool    initialize;
+bool    mode;
 };
 struct  fields_float{
 float   yaw;
@@ -82,11 +84,13 @@ bool    liftRun;
 bool    gimbalRun;
 bool    shutdown;
 bool    initialize;
+bool    mode;
 };
 
 extern struct           fields          control;
-extern struct           fields_float    rosInput;
-extern int              currentPosition; 
+extern struct           fields          rosInput;
+extern int              currentPosition;
+extern bool             stall; 
 extern bool             liftFlag;
 extern bool             motorFlag;
 extern bool             imuFlag;

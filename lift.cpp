@@ -11,52 +11,35 @@
 #include <Mx28.h>
 
 void runLift(void){
-    
-    //static int      liftPosition = 0;
-    bool            stall = FALSE;
-    static bool     ramp = FALSE;
-    static float    rampSpeed = 0.0;
-    static float    propSpeed = 0.0;
-    static int      speedCount = 20;
-    
     if (liftFlag && control.liftRun){
         liftFlag = 0;
-    // If the lift has not started moving, start ramp up and direction.
-        if (liftSpeed.read() == 0.0f && ramp == FALSE){
-            ramp = TRUE;
-            if (control.height > currentPosition){
-                liftDirection.write(LIFTUP);
-            } else {
-                liftDirection.write(LIFTDOWN);
-            }
+        // Set direction
+        if(control.height > currentPosition){
+            liftDirection.write(LIFTUP);    
         }
-        
-        // Update the speed
-        if (speedCount == 20){
-            speedCount = 0;
-            propSpeed = 0.2 + (abs(control.height - currentPosition) * LIFTPROPCONST);
-            if (ramp){
-                rampSpeed = rampSpeed + LIFTRAMPCONST;
-                if ((rampSpeed < propSpeed) && (rampSpeed < 1.0f)){
-                    liftSpeed.write(rampSpeed);
-                } else {
-                    liftSpeed.write(propSpeed);
-                    ramp = FALSE;
-                    rampSpeed = 0.0;
-                }
-            } else{
-                liftSpeed.write(propSpeed);
-            }
-        } else {
-            speedCount++;
+        else if(control.height < currentPosition){
+            liftDirection.write(LIFTDOWN);
         }
-        checkLift(currentPosition, stall);
-     
         // Check if arrived at destination height.
-        if (abs(control.height - currentPosition) < 5){
+        if (control.height == currentPosition){
             control.liftRun = FALSE;
             liftSpeed.write(0);
         }
+        else {
+            liftSpeed.write(0.5);
+            checkLift(currentPosition, stall);
+            // Check for stalling
+            if(stall && liftSpeed.read() > 0){
+                stall = FALSE;
+                control.liftRun = FALSE;
+                liftSpeed.write(0);
+                if (liftDirection.read() == LIFTUP){
+                    currentPosition = LIFTHEIGHTMAX;
+                }else{
+                    currentPosition = 0;
+                }
+            }
+        }       
     }    
 }
 
@@ -140,10 +123,11 @@ void checkLift(int& position, bool& stall) {
         if (movementStart == position){
             stallcount++;
             if (stallcount >= STALLTIME){
-                stall = 1;
+                stall = TRUE;
             }
         } else{
             stallcount = 0;
+            stall = FALSE;
         }
 
     }

@@ -6,64 +6,96 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <prototypes.h>
 
+
 void module_commandCB(const std_msgs::Float32MultiArray& command_data){
     
     rosInput.yaw = command_data.data[ROSYAW];
     rosInput.pitch = command_data.data[ROSPITCH];
     rosInput.roll = command_data.data[ROSROLL];
     rosInput.height = command_data.data[ROSHEIGHT];
+    rosInput.mode = command_data.data[ROSMODE];
     
 }
 
-void rosCheck(){
-    int rosyaw = 0;
-    int rospitch = 0;
-    int rosroll = 0;
-    int rosheight = 0;
-    if (imuFlag){ 
-        imuFlag = 0;     
-        rosyaw = (YAWZERO + (int)(rosInput.yaw * DYNASCALE));
-        rospitch = (PITCHZERO + (int)(rosInput.pitch * DYNASCALE));
-        rosroll = (ROLLZERO + (int)(rosInput.roll * DYNASCALE));
-        
-        // Error checking for out of bounds values.
-        if (rosyaw > YAWMAX){
-            rosyaw = YAWMAX;
-        }else if (rosyaw < YAWMIN){
-            rosyaw = YAWMIN;
-        }
-        if (rospitch > PITCHMAX){
-            rospitch = PITCHMAX;
-        }else if (rospitch < PITCHMIN){
-            rospitch = PITCHMIN;
-        }
-        if (rosroll > ROLLMAX){
-           rosroll = ROLLMAX;
-        }else if (rosroll < ROLLMIN){
-            rosroll = ROLLMIN;
-        }    
-        
-        // Enter the new values.
-        if (control.yaw != rosyaw || control.pitch != rospitch || control.roll != rosroll){     
-                control.yaw = rosyaw;
-                control.pitch = rospitch;
-                control.roll = rosroll;
+void rosCheck(){ 
+    if (rosFlag){ 
+        rosFlag = 0;
+        if(rosInput.mode == 0){ //Transport Mode
+                control.yaw = YAWZERO;
+                control.pitch = PITCHZERO;
+                control.roll = ROLLZERO;
                 control.gimbalRun = TRUE;
+            if(control.height != LIFTHEIGHTMIN){
+                control.height = LIFTHEIGHTMIN;
+                control.liftRun = TRUE;
+            }      
         }
-        
-        rosheight = (int)(rosInput.height * LIFTSCALE);            // Retrieve the height data.
-        
-        // Error checking for out of bounds values.
-        if (rosheight > LIFTHEIGHTMAX){
-            rosheight = LIFTHEIGHTMAX;
-        } else if(rosheight < LIFTHEIGHTMIN) {
-            rosheight = LIFTHEIGHTMIN;
-        }
-        
-        // Check if it is new data.
-        if (control.height != rosheight){
-            control.height = rosheight;
-            control.liftRun = TRUE;
-        }          
-    }
+        else if(rosInput.mode == 1){ //Photo Mode         
+            switch(rosInput.height){
+                case(1):
+                control.height = control.height + 50; 
+                control.liftRun = TRUE;   
+                if(control.height > LIFTHEIGHTMAX){
+                    control.height = LIFTHEIGHTMAX;}
+                break;
+                case(2):
+                control.height = control.height - 50;
+                control.liftRun = TRUE;   
+                if(control.height < LIFTHEIGHTMIN){
+                    control.height = LIFTHEIGHTMIN;}
+                break;
+                case(0):
+                control.height = currentPosition;
+                break; 
+            } 
+            switch(rosInput.yaw){
+                case(1):
+                control.yaw = control.yaw + 50;
+                control.gimbalRun = TRUE;
+                if(control.yaw > YAWMAX){
+                    control.yaw = YAWMAX;}
+                break;
+                case(2):
+                control.yaw = control.yaw - 50;
+                control.gimbalRun = TRUE;
+                if(control.yaw < YAWMIN){
+                    control.yaw = YAWMIN;}
+                break;
+                case(0):
+                break;
+            }
+            switch(rosInput.pitch){
+                case(1):
+                control.pitch = control.pitch + 50;
+                control.gimbalRun = TRUE;
+                if(control.pitch > PITCHMAX){
+                    control.pitch = PITCHMAX;}
+                break;
+                case(2):
+                control.pitch = control.pitch - 50;
+                control.gimbalRun = TRUE;
+                if(control.pitch < PITCHMIN){
+                    control.pitch = PITCHMIN;}
+                break;
+                case(0):
+                break; 
+            }
+            switch(rosInput.roll){
+                case(1):
+                control.roll = control.roll + 50;
+                control.gimbalRun = TRUE;
+                if(control.roll > ROLLMAX){
+                    control.roll = ROLLMAX;}
+                break;
+                case(2):
+                control.roll = control.roll - 50;
+                control.gimbalRun = TRUE;
+                if(control.roll < ROLLMIN){
+                    control.roll = ROLLMIN;}
+                break;
+                case(0):
+                break; 
+            }
+        } 
+    }   
 }

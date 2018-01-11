@@ -38,30 +38,29 @@ ros::Subscriber<std_msgs::Float32MultiArray> sub("module_command", &module_comma
 // Global Variable
 // Variables
 struct          fields control;
-struct          fields_float rosInput;
+struct          fields rosInput;
 bool            liftFlag = 0;
 bool            motorFlag = 0;
 bool            homeFlag = 0;
 bool            imuFlag = 0;
 bool            rosFlag = 0;
-int             currentPosition = 0;
+int             currentPosition = LIFTHEIGHTMIN;
+bool            stall = FALSE;
 
 // Main Program
 int main() {
-    
     // Initializations
     setupGimbal();
     setupLift();                                // Lift
     setupROSNode(nh, sub);                      // ROS Node Handle
-
     // Main Loop
     while (1) {     
         // Lift Operation
-        runLift();
+        runLift(); 
         //Run Gimbal 
         runGimbal();
         //ROS Functions 
-        nh.spinOnce();
-        rosCheck();                 
+        nh.spinOnce();  
+        rosCheck();              
     }
 }
